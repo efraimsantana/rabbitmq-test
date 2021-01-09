@@ -1,0 +1,50 @@
+version: '3.4'
+
+services:
+
+  email:
+    container_name: EmailFakeMoveFile
+    image: schickling/mailcatcher
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    networks: 
+      - move_file
+
+  s3:
+    container_name: S3FakeMoveFile
+    image: minio/minio    
+    volumes:
+      - s3_move_file_data:/data
+      - s3_move_file_config:/root/.minio
+    ports:
+      - "9000:9000"
+    command: server /data
+    environment:
+      MINIO_ACCESS_KEY: 035edd8d293f4d278f151481c959a679
+      MINIO_SECRET_KEY: 7373b50ada8371b9c5d419718805645
+    networks: 
+      - move_file
+
+  message_broker:
+    container_name: rabbitmqMoveFile
+    image: rabbitmq:3.8-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=user 
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks: 
+      - move_file
+      
+volumes: 
+  s3_move_file_data:
+  s3_move_file_config:
+  rabbitmq_data:
+
+networks: 
+  move_file:
+    driver: bridge
